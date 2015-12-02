@@ -29,9 +29,9 @@ public class Handler {
         int emailStartClassNameIterator = 0;
         String emailClassName = "";
 
-        doc.getElementsContainingOwnText(String.format("%s %s", coach.getFirstName(), coach.getLastName())).stream().filter(element -> element.ownText().equalsIgnoreCase(String.format("%s %s", coach.getFirstName(), coach.getLastName()))).forEach(element -> {
-            startFrom[0] = doc.getAllElements().indexOf(element);
-        });
+        doc.getElementsContainingOwnText(String.format("%s %s", coach.getFirstName(), coach.getLastName())).stream().filter(element -> element.ownText().equalsIgnoreCase(String.format("%s %s", coach.getFirstName(), coach.getLastName()))).forEach(element ->
+            startFrom[0] = doc.getAllElements().indexOf(element)
+        );
 
         for (int i = startFrom[0]; i < doc.getAllElements().size(); i++) {
             Element element = doc.getAllElements().get(i);
