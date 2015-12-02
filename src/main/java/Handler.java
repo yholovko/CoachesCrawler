@@ -24,9 +24,16 @@ public class Handler {
 
     public void run(Coach coach) {
         Pattern emailPattern = Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+        final int[] startFrom = {0};
         int emailCounter = 0;
+        int emailStartClassNameIterator = 0;
+        String emailClassName = "";
 
-        for (int i = 0; i < doc.getAllElements().size(); i++) {
+        doc.getElementsContainingOwnText(String.format("%s %s", coach.getFirstName(), coach.getLastName())).stream().filter(element -> element.ownText().equalsIgnoreCase(String.format("%s %s", coach.getFirstName(), coach.getLastName()))).forEach(element -> {
+            startFrom[0] = doc.getAllElements().indexOf(element);
+        });
+
+        for (int i = startFrom[0]; i < doc.getAllElements().size(); i++) {
             Element element = doc.getAllElements().get(i);
 
             // name
@@ -43,7 +50,7 @@ public class Handler {
             }
 
             // email
-            if (coach.isFound() && coach.getEmail() == null && emailCounter < 6) { // 5 (deep) next elements where we can find coach email
+            if (coach.isFound() && coach.getEmail() == null && emailCounter < 30) { // (deep) next elements where we can find coach email
                 Matcher matcher = emailPattern.matcher(element.ownText());
                 if (matcher.matches()) {
                     coach.setEmail(element.ownText());
@@ -64,9 +71,15 @@ public class Handler {
                         break;
                     }
                 }
-                if (!element.ownText().isEmpty()) {
-                    emailCounter++;
+                if (emailClassName.isEmpty()) {
+                    emailClassName = element.className();
+                    emailStartClassNameIterator = emailCounter;
                 }
+                if (element.className().equals(emailClassName) && emailStartClassNameIterator < emailCounter) { // new coach
+                    break;
+                }
+
+                emailCounter++;
             }
         }
 
