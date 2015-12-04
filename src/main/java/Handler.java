@@ -40,11 +40,11 @@ public class Handler {
             if (!coach.isFound() && element.ownText().toLowerCase().contains(coach.getFirstName().toLowerCase())) {
                 if (element.ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                     coach.setIsFound(true); //name and surname in the same column
-                    coach.setDetailsPageUrl(element.attr("href"));
+                    coach.setDetailsPageUrl(element.attr("abs:href"));
                 } else {
                     if (getAdjacentColumnElement(doc.getAllElements(), i + 1).ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                         coach.setIsFound(true); //name and surname in the adjacent columns
-                        coach.setDetailsPageUrl(element.attr("href"));
+                        coach.setDetailsPageUrl(element.attr("abs:href"));
                     }
                 }
             }
