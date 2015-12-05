@@ -2,6 +2,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +23,26 @@ public class Handler {
         return elements.get(from);
     }
 
+    private String getCoachBiography(Coach coach, Element element) {
+        String details = "";
+        if (coach.getDetailsPageUrl() != null && !coach.getDetailsPageUrl().isEmpty()) {
+            Document detailsDoc = Main.connectTo(coach.getDetailsPageUrl()).get();
+            for (Element el : detailsDoc.getElementsContainingOwnText(coach.getFullName())) {
+                if (!el.ownText().equals(coach.getFullName())) {
+                    details += el.ownText();
+                }
+            }
+            if (details.isEmpty() || details.equalsIgnoreCase(coach.getFullName())) {
+
+            }
+        } else {
+            //todo start from element
+            //find info on the current page
+        }
+
+        return details;
+    }
+
     public void run(Coach coach) {
         Pattern emailPattern = Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
         final int[] startFrom = {0};
@@ -29,28 +50,30 @@ public class Handler {
         int emailStartClassNameIterator = 0;
         String emailClassName = "";
 
-        doc.getElementsContainingOwnText(String.format("%s %s", coach.getFirstName(), coach.getLastName())).stream().filter(element -> element.ownText().equalsIgnoreCase(String.format("%s %s", coach.getFirstName(), coach.getLastName()))).forEach(element ->
-            startFrom[0] = doc.getAllElements().indexOf(element)
+        doc.getElementsContainingOwnText(coach.getFullName()).stream().filter(element -> element.ownText().equalsIgnoreCase(coach.getFullName())).forEach(element ->
+                        startFrom[0] = doc.getAllElements().indexOf(element)
         );
 
         for (int i = startFrom[0]; i < doc.getAllElements().size(); i++) {
             Element element = doc.getAllElements().get(i);
 
             // name
-            if (!coach.isFound() && element.ownText().toLowerCase().contains(coach.getFirstName().toLowerCase())) {
+            if (!coach.isCoachFound() && element.ownText().toLowerCase().contains(coach.getFirstName().toLowerCase())) {
                 if (element.ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                     coach.setIsFound(true); //name and surname in the same column
                     coach.setDetailsPageUrl(element.attr("abs:href"));
+                    coach.setBiography(getCoachBiography(coach, element));
                 } else {
                     if (getAdjacentColumnElement(doc.getAllElements(), i + 1).ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                         coach.setIsFound(true); //name and surname in the adjacent columns
                         coach.setDetailsPageUrl(element.attr("abs:href"));
+                        coach.setBiography(getCoachBiography(coach, element));
                     }
                 }
             }
 
             // email
-            if (coach.isFound() && coach.getEmail() == null && emailCounter < 30) { // (deep) next elements where we can find coach email
+            if (coach.isCoachFound() && coach.getEmail() == null && emailCounter < 30) { // (deep) next elements where we can find coach email
                 Matcher matcher = emailPattern.matcher(element.ownText());
                 if (matcher.matches()) {
                     coach.setEmail(element.ownText());
@@ -83,6 +106,11 @@ public class Handler {
             }
         }
 
+        try {
+            Database.insertInformationAboutCoach(coach);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         System.out.println(coach.toString());
     }
 }

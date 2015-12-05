@@ -6,11 +6,13 @@ import org.jsoup.nodes.Document;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static final String XML_NAME = "input.xlsx";
@@ -42,6 +44,7 @@ public class Main {
         return results;
     }
 
+
     public static Optional<Document> connectTo(String url) {
         try {
             Document doc = Jsoup.connect(url)
@@ -58,17 +61,33 @@ public class Main {
 
     private static void test() {
         Coach testCoach = new Coach();
-        testCoach.setDirectory("http://www.abac.edu/athletics/athletics-department");
-        testCoach.setFirstName("Larry");
-        testCoach.setLastName("Byrnes");
+        testCoach.setDirectory("http://www.acusports.com/staff.aspx?");
+        testCoach.setFirstName("John");
+        testCoach.setLastName("Baker");
 
         connectTo(testCoach.getDirectory()).ifPresent(doc -> new Handler(doc).run(testCoach));
     }
 
-    public static void main(String[] args) {
+    private static void run() throws InterruptedException {
         ExecutorService es = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-        readXml().forEach((coach) -> es.execute(() -> connectTo(coach.getDirectory()).ifPresent((doc) -> new Handler(doc).run(coach))));
+        Database.getNewRecords().forEach((coach) -> es.execute(() -> connectTo(coach.getDirectory()).ifPresent((doc) -> new Handler(doc).run(coach))));
+        es.shutdown();
+        es.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+    }
 
-        //test();
+
+    /**
+     *** comfortable output ***
+
+     select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
+     from results inner join inputdata
+     where results.inputDataId = inputdata.id
+
+     */
+    public static void main(String[] args) throws SQLException, InterruptedException {
+        Database.HARD_RESET();
+
+        run();
+//        test();
     }
 }

@@ -1,18 +1,22 @@
 public class Coach {
-    private boolean isFound;
+    private int inputDataId;
     private String directory;
     private String mongoID;
     private String firstName;
     private String lastName;
+    private String fullName;
+
+    private boolean coachFound;
     private String detailsPageUrl;
     private String email;
+    private String biography;
 
-    public boolean isFound() {
-        return isFound;
+    public int getInputDataId() {
+        return inputDataId;
     }
 
-    public void setIsFound(boolean isFound) {
-        this.isFound = isFound;
+    public void setInputDataId(int inputDataId) {
+        this.inputDataId = inputDataId;
     }
 
     public String getDirectory() {
@@ -47,6 +51,22 @@ public class Coach {
         this.lastName = lastName;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public boolean isCoachFound() {
+        return coachFound;
+    }
+
+    public void setIsFound(boolean isFound) {
+        this.coachFound = isFound;
+    }
+
     public String getDetailsPageUrl() {
         return detailsPageUrl;
     }
@@ -63,15 +83,20 @@ public class Coach {
         this.email = email;
     }
 
+    public String getBiography() {
+        return biography;
+    }
+
+    public void setBiography(String biography) {
+        this.biography = biography;
+    }
+
     @Override
     public String toString() {
         return "Coach{" +
-                "isFound=" + isFound +
+                "coachFound=" + coachFound +
                 ", directory='" + directory + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", detailsPageUrl='" + detailsPageUrl + '\'' +
-                ", email='" + email + '\'' +
+                ", fullName='" + fullName + '\'' +
                 '}';
     }
 }
