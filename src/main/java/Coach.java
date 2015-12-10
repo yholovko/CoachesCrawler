@@ -97,6 +97,8 @@ public class Coach {
                 "coachFound=" + coachFound +
                 ", directory='" + directory + '\'' +
                 ", fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", bio='" + biography + '\'' +
                 '}';
     }
 }

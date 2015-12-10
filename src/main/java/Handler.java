@@ -32,15 +32,22 @@ public class Handler {
                     details += el.ownText();
                 }
             }
-            if (details.isEmpty() || details.equalsIgnoreCase(coach.getFullName())) {
-
+            if (details.isEmpty()) {
+                Elements elements = detailsDoc.getElementsContainingOwnText(coach.getFullName());
+                for (Element el : elements) {
+                    for (Element child : el.parent().children()) {
+                        if (!child.ownText().isEmpty() && !child.ownText().trim().equalsIgnoreCase("return to staff") && !details.startsWith(child.ownText())) {
+                            details += child.ownText() + " ";
+                        }
+                    }
+                }
             }
         } else {
             //todo start from element
             //find info on the current page
         }
 
-        return details;
+        return details.trim();
     }
 
     public void run(Coach coach) {
@@ -59,7 +66,11 @@ public class Handler {
 
             // name
             if (!coach.isCoachFound() && element.ownText().toLowerCase().contains(coach.getFirstName().toLowerCase())) {
-                if (element.ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
+                if (element.ownText().toLowerCase().equalsIgnoreCase(coach.getFullName().toLowerCase())) {
+                    coach.setIsFound(true); //name and surname in the same column and equals
+                    coach.setDetailsPageUrl(element.attr("abs:href"));
+                    coach.setBiography(getCoachBiography(coach, element));
+                } else if (element.ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                     coach.setIsFound(true); //name and surname in the same column
                     coach.setDetailsPageUrl(element.attr("abs:href"));
                     coach.setBiography(getCoachBiography(coach, element));
@@ -94,11 +105,14 @@ public class Handler {
                         break;
                     }
                 }
-                if (emailClassName.isEmpty()) {
+                if (emailClassName.isEmpty() && !element.ownText().isEmpty()) {
                     emailClassName = element.className();
                     emailStartClassNameIterator = emailCounter;
                 }
-                if (element.className().equals(emailClassName) && emailStartClassNameIterator < emailCounter) { // new coach
+                if (emailClassName.isEmpty() && ++emailCounter == 7) {
+                    break;
+                }
+                if (element.className().equals(emailClassName) && emailStartClassNameIterator < emailCounter && !emailClassName.isEmpty()) { // new coach
                     break;
                 }
 

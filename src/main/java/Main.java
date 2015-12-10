@@ -61,9 +61,10 @@ public class Main {
 
     private static void test() {
         Coach testCoach = new Coach();
-        testCoach.setDirectory("http://www.acusports.com/staff.aspx?");
-        testCoach.setFirstName("John");
-        testCoach.setLastName("Baker");
+        testCoach.setDirectory("http://www.asugrizzlies.com/staff.aspx");
+        testCoach.setFirstName("Russ");
+        testCoach.setLastName("Caton");
+        testCoach.setFullName("Russ Caton");
 
         connectTo(testCoach.getDirectory()).ifPresent(doc -> new Handler(doc).run(testCoach));
     }
@@ -82,6 +83,11 @@ public class Main {
      select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
      from results inner join inputdata
      where results.inputDataId = inputdata.id
+
+
+     select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
+     from results inner join inputdata
+     where results.inputDataId = inputdata.id AND results.detailsAboutCoachUrl <> '' AND results.coachfound = 1
 
      */
     public static void main(String[] args) throws SQLException, InterruptedException {
