@@ -1,8 +1,12 @@
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,38 +20,145 @@ public class Handler {
     private Element getAdjacentColumnElement(Elements elements, int from) {
         for (int i = from; i < elements.size(); i++) {
             Element element = elements.get(i);
-            if (!element.ownText().isEmpty()) {
+            if (!element.ownText().trim().isEmpty()) {
                 return element;
             }
         }
         return elements.get(from);
     }
 
-    private String getCoachBiography(Coach coach, Element element) {
-        String details = "";
+    private String getCoachBiography(Coach coach, Element startFromElement) {
+        List<String> possibleBio = new ArrayList<>();
+
         if (coach.getDetailsPageUrl() != null && !coach.getDetailsPageUrl().isEmpty()) {
             Document detailsDoc = Main.connectTo(coach.getDetailsPageUrl()).get();
-            for (Element el : detailsDoc.getElementsContainingOwnText(coach.getFullName())) {
-                if (!el.ownText().equals(coach.getFullName())) {
-                    details += el.ownText();
+            Elements elements = detailsDoc.getElementsContainingOwnText(coach.getFullName());
+
+            String details1 = "";
+            for (Element el : elements) {
+                if (!el.ownText().trim().equals(coach.getFullName())) {
+                    details1 += el.ownText().trim();
                 }
             }
-            if (details.isEmpty()) {
-                Elements elements = detailsDoc.getElementsContainingOwnText(coach.getFullName());
-                for (Element el : elements) {
-                    for (Element child : el.parent().children()) {
-                        if (!child.ownText().isEmpty() && !child.ownText().trim().equalsIgnoreCase("return to staff") && !details.startsWith(child.ownText())) {
-                            details += child.ownText() + " ";
-                        }
+            possibleBio.add(details1.trim());
+
+            String details2 = "";
+
+            for (Element el : elements) {
+                for (Element child : el.parent().children()) {
+                    if (!child.ownText().isEmpty() &&
+                            !details2.startsWith(child.ownText()) &&
+                            !child.ownText().trim().equalsIgnoreCase("return to staff") &&
+                            !child.ownText().trim().equals(coach.getFullName())) {
+                        details2 += child.ownText().trim() + " ";
                     }
                 }
             }
+            possibleBio.add(details2.trim());
+
+            String details3 = "";
+            for (Element el : elements) { // trying to extract text between tags
+                for (TextNode textNode : el.parent().textNodes()) {
+                    if (!textNode.getWholeText().trim().isEmpty() &&
+                            !textNode.getWholeText().trim().equalsIgnoreCase("return to staff") &&
+                            !textNode.getWholeText().trim().equals(coach.getFullName())) {
+                        details3 += textNode.getWholeText().trim() + " ";
+                    }
+                }
+            }
+            possibleBio.add(details3.trim());
+//            String details4 = "";
+//            for (Element el : elements) { // trying to extract text between tags
+//                for (Node childNode : el.parent().childNodes()) {
+//                    if (childNode instanceof Element) {
+//                        String s = ((Element) childNode).ownText().trim();
+//                        if (!s.isEmpty() && !s.equalsIgnoreCase("return to staff") && !s.equals(coach.getFullName())) {
+//                            details4 += s + " ";
+//                        }
+//                    }
+//                    if (childNode instanceof TextNode) {
+//                        String s = ((TextNode) childNode).text().trim();
+//                        if (!s.isEmpty() && !s.equalsIgnoreCase("return to staff") && !s.equals(coach.getFullName())) {
+//                            details4 += s + " ";
+//                        }
+//                    }
+//                    for (Node childChildNode : childNode.childNodes()) {
+//                        if (childChildNode instanceof Element) {
+//                            String s = ((Element) childChildNode).ownText().trim();
+//                            if (!s.isEmpty() && !s.equalsIgnoreCase("return to staff") && !s.equals(coach.getFullName())) {
+//                                details4 += s + " ";
+//                            }
+//                        }
+//                        if (childChildNode instanceof TextNode) {
+//                            String s = ((TextNode) childChildNode).text().trim();
+//                            if (!s.isEmpty() && !s.equalsIgnoreCase("return to staff") && !s.equals(coach.getFullName())) {
+//                                details4 += s + " ";
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            possibleBio.add(details4.trim());
+
+            String details5 = "";
+            for (Element paragraph : detailsDoc.getElementsByTag("p")) {
+                if (!paragraph.ownText().trim().isEmpty() && !paragraph.ownText().trim().startsWith("Copyright")) {
+                    details5 += paragraph.ownText() + " ";
+                }
+            }
+            possibleBio.add(details5.trim());
         } else {
-            //todo start from element
-            //find info on the current page
+            String currentElementText = startFromElement.ownText().replace(",", "").trim();
+            if (!currentElementText.equalsIgnoreCase(coach.getFullName()) && !currentElementText.equalsIgnoreCase(coach.getFullNameInverse()) && currentElementText.length() != coach.getFullName().length()) {
+                possibleBio.add(startFromElement.ownText().trim());
+            }
+
+            int startFrom = doc.getAllElements().indexOf(startFromElement);
+            String className = doc.getAllElements().get(startFrom).className();
+
+            if (className.isEmpty()) {
+                className = doc.getAllElements().get(startFrom).parent().className();
+            }
+
+            if (!className.isEmpty()) {
+                String bio = "";
+                for (int i = startFrom; i < doc.getAllElements().size(); i++) {
+                    Element element = doc.getAllElements().get(i);
+
+                    String elemText = element.ownText().trim();
+                    if (!elemText.isEmpty() && !elemText.equalsIgnoreCase(coach.getFullName()) && !elemText.equalsIgnoreCase(coach.getFullNameInverse())) {
+                        bio += element.ownText().trim() + " ";
+                    }
+
+                    if (element.className().equals(className)) {
+                        break;
+                    }
+                }
+
+                if (bio.trim().replace(",", "").equalsIgnoreCase(coach.getFullName()) || bio.trim().replace(",", "").equalsIgnoreCase(coach.getFullNameInverse())){
+                    bio = "";
+                }
+
+                possibleBio.add(bio);
+            }
+
+            String bio = getAdjacentColumnElement(doc.getAllElements(), startFrom + 1).ownText().trim().replace(" ", "");
+            if (bio.equalsIgnoreCase(coach.getFirstName()) || bio.equalsIgnoreCase(coach.getLastName()) || bio.isEmpty()) {
+                bio = getAdjacentColumnElement(doc.getAllElements(), startFrom + 2).ownText().trim().replace(" ", "");
+            }
+            possibleBio.add(bio);
+
         }
 
-        return details.trim();
+        return (possibleBio.size() != 0) ? Collections.max(possibleBio, (o1, o2) -> {
+            if (o1.length() > o2.length()) {
+                return 1;
+            } else if (o1.length() < o2.length()) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }) : "";
     }
 
     public void run(Coach coach) {
@@ -56,6 +167,7 @@ public class Handler {
         int emailCounter = 0;
         int emailStartClassNameIterator = 0;
         String emailClassName = "";
+        Element coachNameElement = null;
 
         doc.getElementsContainingOwnText(coach.getFullName()).stream().filter(element -> element.ownText().equalsIgnoreCase(coach.getFullName())).forEach(element ->
                         startFrom[0] = doc.getAllElements().indexOf(element)
@@ -69,18 +181,16 @@ public class Handler {
                 if (element.ownText().toLowerCase().equalsIgnoreCase(coach.getFullName().toLowerCase())) {
                     coach.setIsFound(true); //name and surname in the same column and equals
                     coach.setDetailsPageUrl(element.attr("abs:href"));
-                    coach.setBiography(getCoachBiography(coach, element));
                 } else if (element.ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                     coach.setIsFound(true); //name and surname in the same column
                     coach.setDetailsPageUrl(element.attr("abs:href"));
-                    coach.setBiography(getCoachBiography(coach, element));
                 } else {
                     if (getAdjacentColumnElement(doc.getAllElements(), i + 1).ownText().toLowerCase().contains(coach.getLastName().toLowerCase())) {
                         coach.setIsFound(true); //name and surname in the adjacent columns
                         coach.setDetailsPageUrl(element.attr("abs:href"));
-                        coach.setBiography(getCoachBiography(coach, element));
                     }
                 }
+                coachNameElement = (coach.isCoachFound()) ? element : null;
             }
 
             // email
@@ -109,7 +219,7 @@ public class Handler {
                     emailClassName = element.className();
                     emailStartClassNameIterator = emailCounter;
                 }
-                if (emailClassName.isEmpty() && ++emailCounter == 7) {
+                if (emailClassName.isEmpty() && emailCounter == 7) {
                     break;
                 }
                 if (element.className().equals(emailClassName) && emailStartClassNameIterator < emailCounter && !emailClassName.isEmpty()) { // new coach
@@ -118,6 +228,11 @@ public class Handler {
 
                 emailCounter++;
             }
+        }
+
+        // biography
+        if (coach.isCoachFound()) {
+            coach.setBiography(getCoachBiography(coach, coachNameElement));
         }
 
         try {

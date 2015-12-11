@@ -55,6 +55,10 @@ public class Coach {
         return fullName;
     }
 
+    public String getFullNameInverse() {
+        return getLastName() + " " + getFirstName();
+    }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }

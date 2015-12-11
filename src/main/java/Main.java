@@ -61,10 +61,10 @@ public class Main {
 
     private static void test() {
         Coach testCoach = new Coach();
-        testCoach.setDirectory("http://www.asugrizzlies.com/staff.aspx");
-        testCoach.setFirstName("Russ");
-        testCoach.setLastName("Caton");
-        testCoach.setFullName("Russ Caton");
+        testCoach.setDirectory("http://www.broncosports.com/staffdir/bosu-staffdir.html");
+        testCoach.setFirstName("Morgan");
+        testCoach.setLastName("Basil");
+        testCoach.setFullName("Morgan Basil");
 
         connectTo(testCoach.getDirectory()).ifPresent(doc -> new Handler(doc).run(testCoach));
     }
@@ -92,8 +92,8 @@ public class Main {
      */
     public static void main(String[] args) throws SQLException, InterruptedException {
         Database.HARD_RESET();
-
         run();
+
 //        test();
     }
 }
