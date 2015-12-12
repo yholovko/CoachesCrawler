@@ -1,17 +1,19 @@
+import javafx.util.Pair;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Handler {
     private Document doc;
+    private Document detailsDoc = null;
 
     public Handler(Document doc) {
         this.doc = doc;
@@ -31,7 +33,9 @@ public class Handler {
         List<String> possibleBio = new ArrayList<>();
 
         if (coach.getDetailsPageUrl() != null && !coach.getDetailsPageUrl().isEmpty()) {
-            Document detailsDoc = Main.connectTo(coach.getDetailsPageUrl()).get();
+            if (detailsDoc == null) {
+                detailsDoc = Main.connectTo(coach.getDetailsPageUrl()).get();
+            }
             Elements elements = detailsDoc.getElementsContainingOwnText(coach.getFullName());
 
             String details1 = "";
@@ -135,7 +139,7 @@ public class Handler {
                     }
                 }
 
-                if (bio.trim().replace(",", "").equalsIgnoreCase(coach.getFullName()) || bio.trim().replace(",", "").equalsIgnoreCase(coach.getFullNameInverse())){
+                if (bio.trim().replace(",", "").equalsIgnoreCase(coach.getFullName()) || bio.trim().replace(",", "").equalsIgnoreCase(coach.getFullNameInverse())) {
                     bio = "";
                 }
 
@@ -159,6 +163,95 @@ public class Handler {
                 return 0;
             }
         }) : "";
+    }
+
+    private Pair<byte[], String> downloadImage(Element image) {
+        final String IMAGE_PATTERN = ".(png|jpg|gif|bmp|jpeg|PNG|JPG|GIF|BMP)";
+        Pattern pattern = Pattern.compile(IMAGE_PATTERN);
+
+        String src = image.absUrl("src");
+        String extension = ".jpg";
+
+        Matcher matcher = pattern.matcher(src);
+        if (matcher.find()) {
+            extension = src.substring(matcher.start(), matcher.end());
+        }
+
+        try {
+            byte[] resultImageResponse = Jsoup.connect(src)
+                    .userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
+                    .referrer("http://www.google.com")
+                    .ignoreContentType(true)
+                    .execute().bodyAsBytes();
+
+            return new Pair<>(resultImageResponse, extension);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private Pair<byte[], String> bestImage(Coach coach, Elements images) {
+        for (Element image : images) {
+            if (image.attr("alt").equalsIgnoreCase(coach.getFullName()) || image.attr("alt").equalsIgnoreCase(coach.getFullNameInverse()) ||
+                    (image.attr("alt").toLowerCase().contains(coach.getFirstName().toLowerCase()) && image.attr("alt").toLowerCase().contains(coach.getLastName().toLowerCase()))) {
+                return downloadImage(image);
+            }
+        }
+
+        for (Element image : images) {
+            if (image.attr("alt").toLowerCase().contains(coach.getFirstName().toLowerCase()) || image.attr("alt").toLowerCase().contains(coach.getLastName().toLowerCase())) {
+                return downloadImage(image);
+            }
+        }
+
+        for (Element image : images) {
+            if (image.absUrl("src").toLowerCase().contains(coach.getFirstName().toLowerCase()) || image.absUrl("src").toLowerCase().contains(coach.getLastName().toLowerCase())) {
+                return downloadImage(image);
+            }
+        }
+
+        for (Element image : images) {
+            if (image.absUrl("src").toLowerCase().contains("headshot")) {
+                return downloadImage(image);
+            }
+        }
+        return null;
+    }
+
+    public Pair<byte[], String> getImage(Coach coach) {
+        if (coach.getDetailsPageUrl() != null && !coach.getDetailsPageUrl().isEmpty()) {
+            if (detailsDoc == null) {
+                detailsDoc = Main.connectTo(coach.getDetailsPageUrl()).get();
+            }
+
+            for (Element el : detailsDoc.getElementsContainingOwnText(coach.getFullName())) { // possible matches
+                Elements images = el.parent().getElementsByTag("img");
+                if (images.size() == 0) continue;
+                if (images.size() == 1) {
+                    return downloadImage(images.get(0));
+                } else {
+                    Pair<byte[], String> result = bestImage(coach, images);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+            }
+
+            for (Element hardDeepImage : detailsDoc.getElementsContainingOwnText(coach.getFullName()).parents()) { //all parents
+                Elements images = hardDeepImage.getElementsByTag("img");
+                if (images.size() == 0) continue;
+
+                Pair<byte[], String> result = bestImage(coach, images);
+                if (result != null) {
+                    return result;
+                }
+            }
+        } else {
+            //todo on the same page
+        }
+        return null;
     }
 
     public void run(Coach coach) {
@@ -233,6 +326,11 @@ public class Handler {
         // biography
         if (coach.isCoachFound()) {
             coach.setBiography(getCoachBiography(coach, coachNameElement));
+            Pair<byte[], String> image = getImage(coach);
+            if (image != null) {
+                coach.setImage(image.getKey());
+                coach.setImageExtension(image.getValue());
+            }
         }
 
         try {

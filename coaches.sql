@@ -26,6 +26,7 @@ CREATE TABLE `results` (
 	`email` VARCHAR(1000) NULL,
 	`biography` LONGTEXT NULL,
 	`image` LONGBLOB NULL,
+	`image_extension` VARCHAR(10) NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `FK__inputdata` FOREIGN KEY (`inputDataId`) REFERENCES `inputdata` (`id`)
 )

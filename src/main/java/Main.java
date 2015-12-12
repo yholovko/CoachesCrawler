@@ -5,9 +5,11 @@ import org.jsoup.nodes.Document;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static final String XML_NAME = "input.xlsx";
-    public static final int NUMBER_OF_THREADS = 1;
+    public static int NUMBER_OF_THREADS = 1;
 
     public static List<Coach> readXml() {
         List<Coach> results = new ArrayList<>();
@@ -61,10 +63,10 @@ public class Main {
 
     private static void test() {
         Coach testCoach = new Coach();
-        testCoach.setDirectory("http://www.broncosports.com/staffdir/bosu-staffdir.html");
-        testCoach.setFirstName("Morgan");
-        testCoach.setLastName("Basil");
-        testCoach.setFullName("Morgan Basil");
+        testCoach.setDirectory("http://athletics.anderson.edu/staff.aspx");
+        testCoach.setFirstName("Debra");
+        testCoach.setLastName("Burton");
+        testCoach.setFullName("Debra Burton");
 
         connectTo(testCoach.getDirectory()).ifPresent(doc -> new Handler(doc).run(testCoach));
     }
@@ -76,24 +78,43 @@ public class Main {
         es.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     }
 
+    private static void getImages() {
+        for (Coach coach : Database.getImages()) {
+            try {
+                FileOutputStream out = new FileOutputStream("images/" + new File(coach.getInputDataId() + "_" + coach.getFullName().replace(" ", "_") + coach.getImageExtension()));
+                out.write(Base64.getDecoder().decode(coach.getImage()));
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     /**
-     *** comfortable output ***
-
-     select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
-     from results inner join inputdata
-     where results.inputDataId = inputdata.id
-
-
-     select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
-     from results inner join inputdata
-     where results.inputDataId = inputdata.id AND results.detailsAboutCoachUrl <> '' AND results.coachfound = 1
-
+     * ** comfortable output ***
+     * <p>
+     * select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
+     * from results inner join inputdata
+     * where results.inputDataId = inputdata.id
+     * <p>
+     * <p>
+     * select results.coachfound, inputdata.directory, inputdata.nameFromDirectory, results.detailsAboutCoachUrl, results.email, results.biography
+     * from results inner join inputdata
+     * where results.inputDataId = inputdata.id AND results.detailsAboutCoachUrl <> '' AND results.coachfound = 1
      */
     public static void main(String[] args) throws SQLException, InterruptedException {
-        Database.HARD_RESET();
-        run();
+        if (args.length > 0)
+            NUMBER_OF_THREADS = Integer.parseInt(args[0]);
+        if (NUMBER_OF_THREADS > 0) {
+            System.out.println("Number of threads = " + NUMBER_OF_THREADS);
 
-//        test();
+            //Database.HARD_RESET();
+            run();
+
+            //getImages();
+            //test();
+        } else {
+            System.out.println("Number of threads must be > 0");
+        }
     }
 }

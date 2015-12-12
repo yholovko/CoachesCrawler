@@ -10,6 +10,8 @@ public class Coach {
     private String detailsPageUrl;
     private String email;
     private String biography;
+    private byte[] image;
+    private String imageExtension;
 
     public int getInputDataId() {
         return inputDataId;
@@ -95,14 +97,36 @@ public class Coach {
         this.biography = biography;
     }
 
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
+
+    public String getImageExtension() {
+        return imageExtension;
+    }
+
+    public void setImageExtension(String imageExtension) {
+        this.imageExtension = imageExtension;
+    }
+
     @Override
     public String toString() {
         return "Coach{" +
-                "coachFound=" + coachFound +
+                "inputDataId=" + inputDataId +
                 ", directory='" + directory + '\'' +
+                ", mongoID='" + mongoID + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", fullName='" + fullName + '\'' +
+                ", coachFound=" + coachFound +
+                ", detailsPageUrl='" + detailsPageUrl + '\'' +
                 ", email='" + email + '\'' +
-                ", bio='" + biography + '\'' +
+                ", biography='" + biography + '\'' +
+                ", imageExtension='" + imageExtension + '\'' +
                 '}';
     }
 }
