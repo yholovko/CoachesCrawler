@@ -1,3 +1,5 @@
+package com.elance.coaches;
+
 import javafx.util.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

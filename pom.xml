@@ -20,7 +20,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.medindia.elance.Main</mainClass>
+                            <mainClass>com.elance.coaches.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -1,3 +1,5 @@
+package com.elance.coaches;
+
 public class Coach {
     private int inputDataId;
     private String directory;
