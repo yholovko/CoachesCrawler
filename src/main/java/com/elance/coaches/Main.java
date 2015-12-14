@@ -22,6 +22,12 @@ public class Main {
     public static final String XML_NAME = "input.xlsx";
     public static int NUMBER_OF_THREADS = 1;
 
+    public static String DB_HOST;
+    public static String DB_PORT;
+    public static String DB_PASS;
+    public static String DB_USER;
+    public static String DB_NAME;
+
     public static List<Coach> readXml() {
         List<Coach> results = new ArrayList<>();
 
@@ -105,8 +111,18 @@ public class Main {
      * where results.inputDataId = inputdata.id AND results.detailsAboutCoachUrl <> '' AND results.coachfound = 1
      */
     public static void main(String[] args) throws SQLException, InterruptedException {
-        if (args.length > 0)
-            NUMBER_OF_THREADS = Integer.parseInt(args[0]);
+        if (args.length >= 5) {
+            DB_HOST = args[0];
+            DB_PORT = args[1];
+            DB_USER = args[2];
+            DB_PASS = args[3];
+            DB_NAME = args[4];
+            if (args.length == 6)
+                NUMBER_OF_THREADS = Integer.parseInt(args[5]);
+        } else {
+            System.err.println("java -jar CoachesCrawler.jar <db_host> <db_port> <db_user> <db_pass> <db_name> <number_of_threads>");
+            return;
+        }
         if (NUMBER_OF_THREADS > 0) {
             System.out.println("Number of threads = " + NUMBER_OF_THREADS);
 

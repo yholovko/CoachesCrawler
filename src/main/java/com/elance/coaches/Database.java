@@ -15,7 +15,7 @@ public class Database {
 
     static {
         try {
-            conn = DriverManager.getConnection(String.format("jdbc:mysql://%s:%s/%s", "127.0.0.1", "3306", "coaches"), "root", "root");
+            conn = DriverManager.getConnection(String.format("jdbc:mysql://%s:%s/%s", Main.DB_HOST, Main.DB_PORT, Main.DB_NAME), Main.DB_USER, Main.DB_PASS);
         } catch (SQLException e) {
             e.printStackTrace();
         }
