@@ -58,7 +58,7 @@ public class Database {
             psInsert.setInt(2, (coach.isCoachFound()) ? 1 : 0);
             psInsert.setString(3, coach.getDetailsPageUrl());
             psInsert.setString(4, coach.getEmail());
-            psInsert.setString(5, coach.getBiography());
+            psInsert.setString(5, coach.getBiographyEncodeUTF8());
 
             if (coach.getImage() != null) {
                 psInsert.setBytes(6, Base64.getEncoder().encode(coach.getImage()));

@@ -96,6 +96,18 @@ public class Coach {
         return biography;
     }
 
+    public String getBiographyEncodeUTF8() {
+        String out = null;
+        if (biography != null) {
+            try {
+                out = new String(biography.getBytes("UTF-8"), "ISO-8859-1");
+            } catch (java.io.UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+        return out;
+    }
+
     public void setBiography(String biography) {
         this.biography = biography;
     }
