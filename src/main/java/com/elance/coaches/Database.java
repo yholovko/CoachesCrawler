@@ -97,6 +97,8 @@ public class Database {
             e.printStackTrace();
         }
 
+        System.out.println("New records size: " + results.size());
+
         return results;
     }
 

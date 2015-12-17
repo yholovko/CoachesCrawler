@@ -18,6 +18,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+
+//1. fix extension for http://athletics.aurora.edu/images/2014/9/16//headshot_1_Vasiliki_Barakos_jpg.jpg (_jpg to .jpg)
+//2. add new column MIME_TYPE http://webdesign.about.com/od/multimedia/a/mime-types-by-file-extension.htm
+//3. encode the biography text in UTF-8 unicode
+//4. get an image that is in portrait dimensions (first priority)
+//5. exclude contact data rows? If a line <br> begins with "Phone:", or "Position:", or "Email:", "Previous College:" or "Experience:" then exclude that line
+
 public class Main {
     public static final String XML_NAME = "input.xlsx";
     public static int NUMBER_OF_THREADS = 1;
@@ -71,10 +78,10 @@ public class Main {
 
     private static void test() {
         Coach testCoach = new Coach();
-        testCoach.setDirectory("http://athletics.anderson.edu/staff.aspx");
-        testCoach.setFirstName("Debra");
-        testCoach.setLastName("Burton");
-        testCoach.setFullName("Debra Burton");
+        testCoach.setDirectory("http://athletics.aurora.edu/staff.aspx");
+        testCoach.setFirstName("Vasiliki");
+        testCoach.setLastName("Barakos");
+        testCoach.setFullName("Vasiliki Barakos");
 
         connectTo(testCoach.getDirectory()).ifPresent(doc -> new Handler(doc).run(testCoach));
     }
@@ -126,11 +133,11 @@ public class Main {
         if (NUMBER_OF_THREADS > 0) {
             System.out.println("Number of threads = " + NUMBER_OF_THREADS);
 
-            //Database.HARD_RESET();
-            run();
-
+            Database.HARD_RESET();
+            test();
             //getImages();
-            //test();
+
+            //run();
         } else {
             System.out.println("Number of threads must be > 0");
         }

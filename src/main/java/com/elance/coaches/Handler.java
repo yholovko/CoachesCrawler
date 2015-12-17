@@ -168,7 +168,7 @@ public class Handler {
     }
 
     private Pair<byte[], String> downloadImage(Element image) {
-        final String IMAGE_PATTERN = ".(png|jpg|gif|bmp|jpeg|PNG|JPG|GIF|BMP)";
+        final String IMAGE_PATTERN = "\\.(png|jpg|gif|bmp|jpeg|PNG|JPG|GIF|BMP)";
         Pattern pattern = Pattern.compile(IMAGE_PATTERN);
 
         String src = image.absUrl("src");
