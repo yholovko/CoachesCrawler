@@ -50,7 +50,7 @@ public class Database {
     }
 
     public static void insertInformationAboutCoach(Coach coach) throws SQLException {
-        String sqlInsert = "INSERT INTO `results` (`inputDataId`, `coachFound`, `detailsAboutCoachUrl`, `email`, `biography`, `image`, `image_extension`) VALUES (?,?,?,?,?,?,?);";
+        String sqlInsert = "INSERT INTO `results` (`inputDataId`, `coachFound`, `detailsAboutCoachUrl`, `email`, `biography`, `image`, `image_extension`, `mime_type`) VALUES (?,?,?,?,?,?,?,?);";
         String sqlUpdate = String.format("UPDATE `coaches`.`inputdata` SET `isVisited`=1 WHERE  `id`=%s;", coach.getInputDataId());
 
         try (PreparedStatement psInsert = conn.prepareStatement(sqlInsert); PreparedStatement psUpdate = conn.prepareStatement(sqlUpdate);) {
@@ -63,9 +63,11 @@ public class Database {
             if (coach.getImage() != null) {
                 psInsert.setBytes(6, Base64.getEncoder().encode(coach.getImage()));
                 psInsert.setString(7, coach.getImageExtension());
+                psInsert.setString(8, coach.getMimeType());
             } else {
                 psInsert.setString(6, null);
                 psInsert.setString(7, null);
+                psInsert.setString(8, null);
             }
             psInsert.executeUpdate();
 

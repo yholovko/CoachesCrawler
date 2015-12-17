@@ -19,11 +19,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 
-//1. fix extension for http://athletics.aurora.edu/images/2014/9/16//headshot_1_Vasiliki_Barakos_jpg.jpg (_jpg to .jpg)
-//2. add new column MIME_TYPE http://webdesign.about.com/od/multimedia/a/mime-types-by-file-extension.htm
-//3. encode the biography text in UTF-8 unicode
-//4. get an image that is in portrait dimensions (first priority)
-//5. exclude contact data rows? If a line <br> begins with "Phone:", or "Position:", or "Email:", "Previous College:" or "Experience:" then exclude that line
+//1. add new column MIME_TYPE http://webdesign.about.com/od/multimedia/a/mime-types-by-file-extension.htm
+//2. encode the biography text in UTF-8 unicode
+//3. get an image that is in portrait dimensions (first priority)
+//4. exclude contact data rows. If a line <br> begins with "Phone:", or "Position:", or "Email:", "Previous College:" or "Experience:" then exclude that line
 
 public class Main {
     public static final String XML_NAME = "input.xlsx";
@@ -133,11 +132,11 @@ public class Main {
         if (NUMBER_OF_THREADS > 0) {
             System.out.println("Number of threads = " + NUMBER_OF_THREADS);
 
-            Database.HARD_RESET();
-            test();
+            //Database.HARD_RESET();
+            //test();
             //getImages();
 
-            //run();
+            run();
         } else {
             System.out.println("Number of threads must be > 0");
         }

@@ -14,6 +14,7 @@ public class Coach {
     private String biography;
     private byte[] image;
     private String imageExtension;
+    private String mimeType;
 
     public int getInputDataId() {
         return inputDataId;
@@ -113,6 +114,28 @@ public class Coach {
 
     public void setImageExtension(String imageExtension) {
         this.imageExtension = imageExtension;
+
+        switch (imageExtension.toLowerCase()) {
+            case ".png":
+                this.mimeType = "image/png";
+                break;
+            case ".jpg":
+                this.mimeType = "image/jpeg";
+                break;
+            case ".gif":
+                this.mimeType = "image/gif";
+                break;
+            case ".bmp":
+                this.mimeType = "image/bmp";
+                break;
+            case ".jpeg":
+                this.mimeType = "image/jpeg";
+                break;
+        }
+    }
+
+    public String getMimeType() {
+        return mimeType;
     }
 
     @Override

@@ -27,6 +27,7 @@ CREATE TABLE `results` (
 	`biography` LONGTEXT NULL,
 	`image` LONGBLOB NULL,
 	`image_extension` VARCHAR(10) NULL,
+	`mime_type` VARCHAR(50) NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT `FK__inputdata` FOREIGN KEY (`inputDataId`) REFERENCES `inputdata` (`id`)
 )
