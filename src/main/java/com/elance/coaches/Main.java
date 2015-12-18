@@ -19,10 +19,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 
-//1. add new column MIME_TYPE http://webdesign.about.com/od/multimedia/a/mime-types-by-file-extension.htm
-//2. encode the biography text in UTF-8 unicode
-//3. get an image that is in portrait dimensions (first priority)
-//4. exclude contact data rows. If a line <br> begins with "Phone:", or "Position:", or "Email:", "Previous College:" or "Experience:" then exclude that line
+//1. get an image that is in portrait dimensions (first priority)
+//2. exclude contact data rows. If a line <br> begins with "Phone:", or "Position:", or "Email:", "Previous College:" or "Experience:" then exclude that line
 
 public class Main {
     public static final String XML_NAME = "input.xlsx";
@@ -77,12 +75,20 @@ public class Main {
 
     private static void test() {
         Coach testCoach = new Coach();
-        testCoach.setDirectory("http://athletics.aurora.edu/staff.aspx");
-        testCoach.setFirstName("Vasiliki");
-        testCoach.setLastName("Barakos");
-        testCoach.setFullName("Vasiliki Barakos");
+        testCoach.setDirectory("http://www.thesundevils.com/ViewArticle.dbml?ATCLID=208253795&DB_OEM_ID=30300&DB_OEM_ID=30300");
+        testCoach.setFirstName("Del");
+        testCoach.setLastName("Alexander");
+        testCoach.setFullName("Del Alexander");
 
         connectTo(testCoach.getDirectory()).ifPresent(doc -> new Handler(doc).run(testCoach));
+        try {
+            FileOutputStream out = new FileOutputStream("images/" + new File(testCoach.getFullName().replace(" ", "_") + testCoach.getImageExtension()));
+            testCoach.setImage(Base64.getEncoder().encode(testCoach.getImage()));
+            out.write(Base64.getDecoder().decode(testCoach.getImage()));
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void run() throws InterruptedException {
@@ -133,10 +139,11 @@ public class Main {
             System.out.println("Number of threads = " + NUMBER_OF_THREADS);
 
             //Database.HARD_RESET();
-            //test();
-            //getImages();
+            //run();
 
-            run();
+            //test();
+            getImages();
+
         } else {
             System.out.println("Number of threads must be > 0");
         }

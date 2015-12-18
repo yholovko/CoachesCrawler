@@ -7,9 +7,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -194,32 +199,109 @@ public class Handler {
         return null;
     }
 
+    private boolean isPortrait(Element image) {
+        String url = image.absUrl("src");
+
+        try {
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
+                    .referrer("http://www.google.com")
+                    .ignoreContentType(true)
+                    .execute().bodyAsBytes()));
+            if (img != null) {
+                int width = img.getWidth();
+                int height = img.getHeight();
+
+                if (width < height)
+                    return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Pair<byte[], String> bestImage(Coach coach, Elements images) {
         for (Element image : images) {
             if (image.attr("alt").equalsIgnoreCase(coach.getFullName()) || image.attr("alt").equalsIgnoreCase(coach.getFullNameInverse()) ||
                     (image.attr("alt").toLowerCase().contains(coach.getFirstName().toLowerCase()) && image.attr("alt").toLowerCase().contains(coach.getLastName().toLowerCase()))) {
-                return downloadImage(image);
+                if (isPortrait(image)) {
+                    return downloadImage(image);
+                }
             }
         }
 
         for (Element image : images) {
             if (image.attr("alt").toLowerCase().contains(coach.getFirstName().toLowerCase()) || image.attr("alt").toLowerCase().contains(coach.getLastName().toLowerCase())) {
-                return downloadImage(image);
+                if (isPortrait(image)) {
+                    return downloadImage(image);
+                }
             }
         }
 
         for (Element image : images) {
             if (image.absUrl("src").toLowerCase().contains(coach.getFirstName().toLowerCase()) || image.absUrl("src").toLowerCase().contains(coach.getLastName().toLowerCase())) {
-                return downloadImage(image);
+                if (isPortrait(image)) {
+                    return downloadImage(image);
+                }
             }
         }
 
-        for (Element image : images) {
-            if (image.absUrl("src").toLowerCase().contains("headshot")) {
-                return downloadImage(image);
-            }
+        Pair<byte[], String> resultPortraitImage = getPortraitImage(detailsDoc.getElementsByTag("img"));
+        if (resultPortraitImage != null) {
+            return resultPortraitImage;
         }
         return null;
+    }
+
+    private Pair<byte[], String> getPortraitImage(Elements images) {
+        class PortraitImage {
+            public Element image;
+            public int width;
+            public int height;
+
+            public PortraitImage(Element image, int width, int height) {
+                this.image = image;
+                this.width = width;
+                this.height = height;
+            }
+
+            public int getResolutionSize() {
+                return width * height;
+            }
+        }
+
+        List<PortraitImage> possiblePortraitImages = new ArrayList<>();
+
+        for (Element image : images) {
+            String url = image.absUrl("src");
+
+            try {
+                BufferedImage img = ImageIO.read(new ByteArrayInputStream(Jsoup.connect(url)
+                        .userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
+                        .referrer("http://www.google.com")
+                        .ignoreContentType(true)
+                        .execute().bodyAsBytes()));
+                if (img != null) {
+                    int width = img.getWidth();
+                    int height = img.getHeight();
+
+                    if (width < height)
+                        possiblePortraitImages.add(new PortraitImage(image, width, height));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return (possiblePortraitImages.size() != 0) ? downloadImage(Collections.max(possiblePortraitImages, (o1, o2) -> {
+            if (o1.getResolutionSize() > o2.getResolutionSize()) {
+                return 1;
+            } else if (o1.getResolutionSize() < o2.getResolutionSize()) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }).image) : null;
     }
 
     public Pair<byte[], String> getImage(Coach coach) {
@@ -231,13 +313,10 @@ public class Handler {
             for (Element el : detailsDoc.getElementsContainingOwnText(coach.getFullName())) { // possible matches
                 Elements images = el.parent().getElementsByTag("img");
                 if (images.size() == 0) continue;
-                if (images.size() == 1) {
-                    return downloadImage(images.get(0));
-                } else {
-                    Pair<byte[], String> result = bestImage(coach, images);
-                    if (result != null) {
-                        return result;
-                    }
+
+                Pair<byte[], String> result = bestImage(coach, images);
+                if (result != null) {
+                    return result;
                 }
             }
 
@@ -249,6 +328,11 @@ public class Handler {
                 if (result != null) {
                     return result;
                 }
+            }
+
+            Pair<byte[], String> resultPortraitImage = getPortraitImage(detailsDoc.getElementsByTag("img"));
+            if (resultPortraitImage != null) {
+                return resultPortraitImage;
             }
         } else {
             //todo on the same page
