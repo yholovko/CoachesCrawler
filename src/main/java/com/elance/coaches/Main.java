@@ -18,10 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-
-//1. get an image that is in portrait dimensions (first priority)
-//2. exclude contact data rows. If a line <br> begins with "Phone:", or "Position:", or "Email:", "Previous College:" or "Experience:" then exclude that line
-
 public class Main {
     public static final String XML_NAME = "input.xlsx";
     public static int NUMBER_OF_THREADS = 1;
@@ -98,7 +94,7 @@ public class Main {
         es.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     }
 
-    private static void getImages() {
+    private static void getAllImagesFromDatabaseOnlyForTesting() {
         for (Coach coach : Database.getImages()) {
             try {
                 FileOutputStream out = new FileOutputStream("images/" + new File(coach.getInputDataId() + "_" + coach.getFullName().replace(" ", "_") + coach.getImageExtension()));
@@ -139,11 +135,10 @@ public class Main {
             System.out.println("Number of threads = " + NUMBER_OF_THREADS);
 
             //Database.HARD_RESET();
-            //run();
-
             //test();
-            getImages();
+            //getAllImagesFromDatabaseOnlyForTesting();
 
+            run();
         } else {
             System.out.println("Number of threads must be > 0");
         }
